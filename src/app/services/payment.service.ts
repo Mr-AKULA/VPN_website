@@ -5,14 +5,14 @@ import { HttpClient } from '@angular/common/http';
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
   private http = inject(HttpClient);
-  private readonly API_URL = 'https://your-backend-api.com/payments'; // Замените на ваш URL
+  private readonly API_URL = 'https://your-backend.com/api/payments'; // Ваш бэкенд
 
-  createPayment(planId: string) {
-    return this.http.post<{ confirmation_url: string }>(`${this.API_URL}/create`, {
+  createYooKassaPayment(planId: string, amount: number, description: string) {
+    return this.http.post<{ confirmation_url: string }>(`${this.API_URL}/yookassa`, {
       planId,
-      // Дополнительные параметры, если нужны
-      currency: 'RUB',
-      description: `Покупка тарифа ${planId}`
+      amount,
+      description,
+      currency: 'RUB'
     });
   }
 }

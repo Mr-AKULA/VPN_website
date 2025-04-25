@@ -25,13 +25,19 @@ import { firstValueFrom } from 'rxjs'; // Для работы с Promise
         <span class="text-3xl font-bold text-blue-600 dark:text-blue-400">150₽</span>
         <span class="ml-2 text-sm text-gray-500 dark:text-gray-400 line-through">229₽</span>
         <span class="ml-2 px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-sm rounded-full">-34%</span>
-      </div>
-      <!-- Тариф 1 - Стало -->
-      <button (click)="buyPlan('monthly')" 
-              class="block w-full py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 text-white text-center rounded-lg transition-all">
-        Купить сейчас
-      </button>
-    </div>
+        <!-- Для тарифа 1 месяц -->
+        <button (click)="buyPlan('monthly')" 
+                class="block w-full py-3 bg-blue-600...">
+          Купить сейчас
+        </button>
+
+        <!-- Добавьте индикаторы -->
+        <div *ngIf="isLoading" class="mt-2 text-center">
+          <span class="animate-pulse">Перенаправляем на оплату...</span>
+        </div>
+        <div *ngIf="errorMessage" class="text-red-500 text-sm mt-2">
+          {{ errorMessage }}
+        </div>
 
     <!-- Тариф 2 -->
     <div class="p-6 bg-white dark:bg-gray-800 rounded-xl border border-purple-200 dark:border-purple-800">
@@ -163,19 +169,29 @@ export class UsePage {
 
   async buyPlan(planId: string) {
     this.isLoading = true;
-    this.errorMessage = '';
     
     try {
+      // Определяем параметры для каждого тарифа
+      const plans = {
+        monthly: { amount: 150, description: 'Подписка на 1 месяц' },
+        quarterly: { amount: 500, description: 'Подписка на 3 месяца' },
+        annual: { amount: 1500, description: 'Подписка на 12 месяцев' }
+      };
+
+      const plan = plans[planId];  // Теперь TypeScript знает точные типы
       const response = await firstValueFrom(
-        this.paymentService.createPayment(planId)
+        this.paymentService.createYooKassaPayment(
+          planId, 
+          plan.amount, 
+          plan.description
+        )
       );
-      
-      // Перенаправляем пользователя на страницу оплаты
+
       window.location.href = response.confirmation_url;
       
     } catch (error) {
-      console.error('Ошибка при создании платежа:', error);
-      this.errorMessage = 'Не удалось инициировать платеж. Пожалуйста, попробуйте позже.';
+      console.error('Payment error:', error);
+      this.errorMessage = 'Ошибка при создании платежа';
     } finally {
       this.isLoading = false;
     }
